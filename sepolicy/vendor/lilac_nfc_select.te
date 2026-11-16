@@ -1,0 +1,52 @@
+# lilac_nfc_select.te
+#
+# init.lilac-nfc.sh — decides which NFC controller this handset has and loads
+# exactly one driver for it. lilac ships as one ROM for two controllers: the
+# G8441's NXP PN553 and the docomo SO-02K's Sony CXD224x + ROHM BD7602 (FeliCa).
+#
+# Scoped deliberately narrowly: it may read the NFC i2c bus, load a module from
+# /vendor, and publish which variant it picked. Nothing else.
+
+type lilac_nfc_select, domain;
+type lilac_nfc_select_exec, vendor_file_type, file_type, exec_type;
+
+init_daemon_domain(lilac_nfc_select)
+
+# It is a shell script and uses toybox for i2cget/insmod.
+allow lilac_nfc_select vendor_shell_exec:file rx_file_perms;
+allow lilac_nfc_select vendor_toolbox_exec:file rx_file_perms;
+
+# Probe the NFC bus (/dev/i2c-7) for the FeliCa parts at 0x1e / 0x29. Read-only
+# in practice, but the i2c chardev is opened read-write to issue the transfer.
+allow lilac_nfc_select nfc_i2c_device:chr_file rw_file_perms;
+
+# Load the one matching driver out of /vendor/lib/modules. domain.te's neverallow
+# restricts module_load to system/vendor/rootfs file types; our modules are
+# vendor_file, and this mirrors what ueventd is granted for the same job.
+allow lilac_nfc_select self:global_capability_class_set sys_module;
+allow lilac_nfc_select vendor_file:system module_load;
+allow lilac_nfc_select vendor_file:file r_file_perms;
+
+# Read /proc/modules, to notice a driver that is already loaded before probing.
+# Without this the check silently fails and the i2c probe runs anyway — which is
+# safe (it falls back to nxp) but defeats the guard.
+allow lilac_nfc_select proc_modules:file r_file_perms;
+
+# The user's override (auto|nxp|felica), written by XperiaParts.
+get_prop(lilac_nfc_select, vendor_nfc_variant_prop)
+
+# Publish the result; init.lilac-nfc.rc starts the matching HAL off this.
+set_prop(lilac_nfc_select, vendor_nfc_hw_prop)
+
+# Progress and failures go to logcat via /vendor/bin/log.
+allow lilac_nfc_select vendor_toolbox_exec:file execute_no_trans;
+
+# Deliberately NOT granted: self:capability sys_admin.
+#
+# Every command this script runs (grep, getprop, i2cget, log, insmod, setprop)
+# audits one sys_admin denial, which looks alarming and is not. It is
+# environmental, not ours: 38 domains on this device do the same, including the
+# long-standing lilac_cpuset, adbd, fsck, toolbox and vendor_modprobe. Everything
+# the script does succeeds regardless — the property is set, the probe reads the
+# bus, the module loads. Granting CAP_SYS_ADMIN to silence log noise would hand
+# this domain the broadest capability in the kernel for no functional reason.

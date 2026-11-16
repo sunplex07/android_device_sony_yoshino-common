@@ -1,0 +1,17 @@
+# hal_nfc_default.te
+#
+# Sony's CXD224x/FeliCa HAL (android.hardware.nfc@1.1-service.cxd, for the docomo
+# SO-02K) runs in this domain, the same as AOSP's NXP HAL — that is how AOSP
+# labels every vendor NFC HAL binary. It needs two things the NXP one does not:
+# its firmware images and its own tuning configs.
+#
+# Both are ordinary vendor file types, and both are unused on a G8441 because the
+# HAL is never started there.
+
+# /vendor/firmware/cxd224x_firmware_ES1.{0,1}.bin
+allow hal_nfc_default vendor_firmware_file:dir search;
+allow hal_nfc_default vendor_firmware_file:file r_file_perms;
+
+# /vendor/etc/libnfc-cxd*.conf, /vendor/etc/nfc_settings.conf
+allow hal_nfc_default vendor_configs_file:dir search;
+allow hal_nfc_default vendor_configs_file:file r_file_perms;

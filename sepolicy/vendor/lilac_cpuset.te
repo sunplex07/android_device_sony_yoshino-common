@@ -1,0 +1,9 @@
+type lilac_cpuset, domain;
+type lilac_cpuset_exec, vendor_file_type, file_type, exec_type;
+
+init_daemon_domain(lilac_cpuset)
+
+allow lilac_cpuset cgroup:dir search;
+allow lilac_cpuset cgroup:file { open read write getattr };
+allow lilac_cpuset vendor_shell_exec:file rx_file_perms;
+allow lilac_cpuset vendor_toolbox_exec:file rx_file_perms;

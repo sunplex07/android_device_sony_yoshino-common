@@ -22,6 +22,8 @@ allow hal_fingerprint_fpc sysfs_fpc_spi_prepare:file rw_file_perms;
 # /sys/devices/soc/soc:fpc1145/wakeup_enable
 allow hal_fingerprint_fpc sysfs_fpc_wakeup:file rw_file_perms;
 
+allow hal_fingerprint_fpc sysfs_pm_wakeup:file rw_file_perms;
+
 # /sys/devices/soc/soc:fpc1145/irq
 allow hal_fingerprint_fpc sysfs_fpc_irq:file rw_file_perms;
 
@@ -44,4 +46,7 @@ allow hal_fingerprint_fpc fingerprintd_data_file:file create_file_perms;
 allow hal_fingerprint_fpc fpc_socket:sock_file write;
 
 # Don't log attempts to look for idd
+# Lifted on SELinux collection builds (WITH_SELINUX_COLLECT=true)
+ifdef(`lilac_collect_denials', `', `
 dontaudit hal_fingerprint_fpc default_android_hwservice:hwservice_manager find;
+')

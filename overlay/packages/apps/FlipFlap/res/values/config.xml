@@ -28,5 +28,7 @@
 
      For example, a device with Asus Circle Cover would set 2 -->
     <integer name="config_deviceCoverType">4</integer>
+    <!-- the cover hides the whole screen, so sleep as soon as it closes -->
+    <string name="config_defaultCoverTimeout" translatable="false">0</string>
 
 </resources>

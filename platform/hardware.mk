@@ -1,77 +1,55 @@
-# Copyright (C) 2017 The LineageOS Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-### AUDIO
 PRODUCT_PACKAGES += \
     audio.r_submix.default \
     audio.usb.default
 
-# BLUETOOTH
 PRODUCT_PACKAGES += \
     audio.bluetooth.default \
     libldacBT_bco.vendor
 
-### CARRIERCONFIG
+PRODUCT_PACKAGES += \
+    libcacao_client \
+    libcacaoreffix \
+    libsonypiecompat
+
 PRODUCT_PACKAGES += \
     CarrierConfigOverlay
 
-### CHARGER
 PRODUCT_PACKAGES += \
     charger_res_images
 
-### COVER
 PRODUCT_PACKAGES += \
     FlipFlap
 
-### DISPLAY
 PRODUCT_PACKAGES += \
     vendor.display.config@1.3
 
-### GRAPHICS
 PRODUCT_PACKAGES += \
     gralloc.msm8998 \
     hwcomposer.msm8998 \
     memtrack.msm8998 \
     libdisplayconfig
 
-### IPACM
 PRODUCT_PACKAGES += \
     ipacm \
     IPACM_cfg.xml \
     libipanat \
     liboffloadhal
 
-### NFC
 PRODUCT_PACKAGES += \
     com.android.nfc_extras \
     Tag
 
-### OPENCUSTOMIZATIONSELECTOR
 PRODUCT_PACKAGES += \
     CustomizationSelector
 
-# PERFD (DUMMY)
 PRODUCT_PACKAGES += \
     libqti-perfd-client
 
-### SENSORS
 PRODUCT_PACKAGES += \
     libsensorndkbridge \
+    libsensorfix \
     libpower.vendor
 
-### SERVICES
-# AUDIO
 PRODUCT_PACKAGES += \
     android.hardware.audio@6.0-impl:32 \
     android.hardware.audio.service \
@@ -79,12 +57,10 @@ PRODUCT_PACKAGES += \
     android.hardware.soundtrigger@2.2-impl:32 \
     libaudioroute.vendor
 
-# BLUETOOTH
 PRODUCT_PACKAGES += \
     android.hardware.bluetooth@1.0.vendor \
     android.hardware.bluetooth.audio-impl
 
-# CAMERA
 PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4 \
     android.hardware.camera.provider@2.4-impl:32 \
@@ -92,78 +68,70 @@ PRODUCT_PACKAGES += \
     vendor.qti.hardware.camera.device@1.0 \
     vendor.qti.hardware.camera.device@1.0.vendor
 
-# CONFIGSTORE
 PRODUCT_PACKAGES += \
     android.hardware.configstore@1.1-service
 
-# DISPLAY
+# LILAC_NO_PANEL=1 (dev only): leave the LiveDisplay SDM HAL out. With the DSI
+# panel disconnected its QDCM backend never becomes ready, the service aborts
+# in a restart loop ("DisplayModes backend not ready"), and because its VINTF
+# fragments still declare the interfaces system_server blocks forever in
+# waitForDeclaredService() until the Watchdog kills it. Not declared = no wait.
+ifneq ($(LILAC_NO_PANEL),1)
 PRODUCT_PACKAGES += \
-    vendor.lineage.livedisplay@2.0-service-sdm
+    vendor.lineage.livedisplay-service.sdm
+endif
 
-# DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.3.vendor \
     android.hardware.drm-service.clearkey
 
-# FINGERPRINT
 PRODUCT_PACKAGES += \
     android.hardware.biometrics.fingerprint@2.1 \
     android.hardware.biometrics.fingerprint@2.1.vendor \
     libhidlbase-v32.vendor
 
-# GATEKEEPER
 PRODUCT_PACKAGES += \
     android.hardware.gatekeeper@1.0 \
     android.hardware.gatekeeper@1.0.vendor
 
-# GNSS
 PRODUCT_PACKAGES += \
     android.hardware.gnss@2.1 \
     android.hardware.gnss@2.1.vendor
 
-# GRAPHICS
 PRODUCT_PACKAGES += \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.composer@2.1-service \
     android.hardware.graphics.mapper@2.0-impl-2.1
 
-# HEALTH
 PRODUCT_PACKAGES += \
     android.hardware.health@2.1-impl:64 \
     android.hardware.health@2.1-impl.recovery \
     android.hardware.health@2.1-service
 
-# KEYMASTER
 PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0 \
     android.hardware.keymaster@3.0.vendor
 
-# LIGHT
 PRODUCT_PACKAGES += \
     android.hardware.light@2.0-impl \
     android.hardware.light@2.0-service
 
-# LINEAGE HEALTH
 PRODUCT_PACKAGES += \
     vendor.lineage.health-service.default
 
-# MEMTRACK
 PRODUCT_PACKAGES += \
     android.hardware.memtrack@1.0-impl \
     android.hardware.memtrack@1.0-service
 
-# NETD
 PRODUCT_PACKAGES += \
     android.system.net.netd@1.1.vendor
 
-# POWER
 PRODUCT_PACKAGES += \
     android.hardware.power@1.2 \
     android.hardware.power@1.2.vendor \
     android.hardware.power-service.yoshino-libperfmgr
 
-# RADIO
 PRODUCT_PACKAGES += \
     android.hardware.broadcastradio@1.0-impl:64 \
     android.hardware.radio@1.5 \
@@ -173,48 +141,54 @@ PRODUCT_PACKAGES += \
     android.hardware.radio.deprecated@1.0 \
     android.hardware.radio.deprecated@1.0.vendor
 
-# SECURE ELEMENT
 PRODUCT_PACKAGES += \
     android.hardware.secure_element@1.2 \
     android.hardware.secure_element@1.2.vendor
 
-# SENSORS
 PRODUCT_PACKAGES += \
     android.frameworks.sensorservice@1.0 \
     android.frameworks.sensorservice@1.0.vendor \
     android.hardware.sensors@1.0-impl:64 \
     android.hardware.sensors@1.0-service
 
-# USB
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.3-service.dual_role_usb
 
-# VIBRATOR
 PRODUCT_PACKAGES += \
-    android.hardware.vibrator@1.0-impl:64 \
-    android.hardware.vibrator@1.0-service
+    android.hardware.vibrator-service.legacy
 
-# WEAVER
 PRODUCT_PACKAGES += \
     android.hardware.weaver@1.0
 
-# WIFI
 PRODUCT_PACKAGES += \
     android.hardware.wifi-service
 
-### TETHERING
 PRODUCT_PACKAGES += \
     TetheringConfigOverlay
 
-### WIFI
 PRODUCT_PACKAGES += \
     hostapd \
     libwpa_client \
     wificond \
     WifiOverlay \
+    YoshinoNetworkStackOverlay \
     wpa_supplicant \
     wpa_supplicant.conf
 
-### XPERIAPARTS
 PRODUCT_PACKAGES += \
     XperiaParts
+
+PRODUCT_PACKAGES += \
+    wds-attach-primer \
+    wds-profile-restore \
+    modem-switcher-guard
+
+# Sony stock camera PARKED 2026-09-18 (user: ship stable fixes only).
+# Restore: uncomment below, or use hardware.mk.bak-camera-20260918
+#PARKED-20260918 # Sony stock camera app + required addon library (BAKE-LIST 1a; re-enabled 2026-09-18)
+#PARKED-20260918 PRODUCT_PACKAGES += \
+#PARKED-20260918     SemcCameraUI \
+#PARKED-20260918     com.sonymobile.camera.addon_impl
+#PARKED-20260918 PRODUCT_COPY_FILES += \
+#PARKED-20260918     device/sony/yoshino-common/config/permissions/privapp-permissions-semccamera.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/privapp-permissions-semccamera.xml \
+#PARKED-20260918     device/sony/yoshino-common/config/permissions/default-permissions-addoncamera.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/default-permissions-addoncamera.xml

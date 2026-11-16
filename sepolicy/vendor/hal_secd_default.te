@@ -34,4 +34,7 @@ allow hal_secd_default mnt_vendor_file:file create_file_perms;
 allow hal_secd_default credmgrd_vendor_data_file:file create_file_perms;
 
 # Don't log attempts to look for idd
+# Lifted on SELinux collection builds (WITH_SELINUX_COLLECT=true)
+ifdef(`lilac_collect_denials', `', `
 dontaudit hal_secd_default default_android_hwservice:hwservice_manager find;
+')

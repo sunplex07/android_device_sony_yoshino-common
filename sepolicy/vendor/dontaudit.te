@@ -1,6 +1,24 @@
-# dontaudit.te
+# dontaudit suppresses denials at POLICY COMPILE TIME -- there is no runtime
+# toggle. During the SELinux enforcing transition these must be lifted, or the
+# collected corpus silently omits whatever they mask.
+#
+# Collection build:  make WITH_SELINUX_COLLECT=true ... (sets BOARD_SEPOLICY_M4DEFS
+# += lilac_collect_denials), which compiles these OUT so the denials surface.
+# Normal builds are unchanged.
+#
+# NOTE: m4 has no `ifndef' -- the two-branch `ifdef(name, if-defined, if-not)'
+# is required. Soong passes defs as `-D name' (empty value), so testing the
+# VALUE (e.g. ifelse) would not work; only definedness can be tested. Verified
+# both ways with `m4 --fatal-warnings' before committing.
+ifdef(`lilac_collect_denials', `', `
 
-# Ignore attempts to read unused OnePlus props due to kanged libqmi_cci.so
+dontaudit vendor_init build_prop:property_service set;
+dontaudit vendor_init userdebug_or_eng_prop:property_service set;
+
+dontaudit hal_nfc_default hal_secure_element_hwservice:hwservice_manager find;
+
+dontaudit cacaoserver shell_data_file:dir search;
+
 dontaudit {
   adpl
   atfwd
@@ -25,8 +43,6 @@ dontaudit {
   wcnss_service
 } oneplus_prop:file read;
 
-
-# Ignore attempts to read unused persist.vendor.data.target_id via libdsutils.so
 dontaudit {
   adpl
   cnd
@@ -45,3 +61,5 @@ dontaudit {
   time_daemon
   wcnss_service
   } vendor_target_id_prop:file read;
+
+')

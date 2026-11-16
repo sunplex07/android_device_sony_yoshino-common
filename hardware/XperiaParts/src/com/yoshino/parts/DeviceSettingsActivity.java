@@ -20,6 +20,8 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowInsets;
 
 public class DeviceSettingsActivity extends Activity {
 
@@ -28,6 +30,17 @@ public class DeviceSettingsActivity extends Activity {
         super.onCreate(bundle);
 
         getActionBar().setDisplayHomeAsUpEnabled(true);
+
+        View content = findViewById(android.R.id.content);
+        content.setOnApplyWindowInsetsListener((view, insets) -> {
+            // The framework dispatches inner insets including the action bar here.
+            view.setPadding(insets.getSystemWindowInsetLeft(),
+                    insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(),
+                    insets.getSystemWindowInsetBottom());
+            return WindowInsets.CONSUMED;
+        });
+        content.requestApplyInsets();
 
         Fragment fragment = getFragmentManager().findFragmentById(android.R.id.content);
         DeviceSettingsFragment deviceSettingsFragment;

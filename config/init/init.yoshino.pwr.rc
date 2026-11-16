@@ -85,11 +85,12 @@ on boot
     write /dev/cpuset/background/cpus "0-3"
     write /dev/cpuset/system-background/cpus "0-3"
     write /dev/cpuset/restricted/cpus "0-3"
-    write /dev/cpuset/top-app/cpus "0-7"
-    write /dev/cpuset/foreground/cpus "0-7"
-    write /dev/cpuset/background/cpus "0-7"
-    write /dev/cpuset/system-background/cpus "0-7"
-    write /dev/cpuset/restricted/cpus "0-7"
+    write /dev/cpuset/top-app/cpus "0-3,6-7"
+    write /dev/cpuset/foreground/boost/cpus "0-3,6"
+    write /dev/cpuset/foreground/cpus "0-3,6"
+    write /dev/cpuset/background/cpus "0-1"
+    write /dev/cpuset/system-background/cpus "0-3"
+    write /dev/cpuset/restricted/cpus "0-3"
 
 on post-fs
     chmod 0664 /sys/devices/virtual/graphics/fb0/idle_time
@@ -138,7 +139,10 @@ on property:sys.boot_completed=1
     # Enable PowerHAL hint processing
     setprop vendor.powerhal.init 1
 
-    write /dev/cpuset/foreground/cpus "0-3,6-7"
-    write /dev/cpuset/background/cpus "0-3"
+    write /dev/cpuset/top-app/cpus "0-3,6-7"
+    write /dev/cpuset/foreground/boost/cpus "0-3,6"
+    write /dev/cpuset/foreground/cpus "0-3,6"
+    write /dev/cpuset/background/cpus "0-1"
     write /dev/cpuset/system-background/cpus "0-3"
     write /dev/cpuset/restricted/cpus "0-3"
+    write /dev/cpuset/camera-daemon/cpus "0-3,6-7"

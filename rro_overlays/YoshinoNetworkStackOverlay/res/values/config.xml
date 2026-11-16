@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <!-- when the sim isn't (fully) read, pick the connectivity check urls from the
+         cell network's country instead. in mainland china that switches to the
+         reachable gstatic.cn urls aosp already ships (values-mcc460), so wifi isn't
+         flagged "no internet" just because google's urls are blocked. -->
+    <bool name="config_no_sim_card_uses_neighbor_mcc">true</bool>
+</resources>

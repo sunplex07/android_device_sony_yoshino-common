@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.widget.Toast;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragment;
 import androidx.preference.SwitchPreference;
@@ -197,6 +199,66 @@ public class DeviceSettingsFragment extends PreferenceFragment implements Prefer
             builder.create().show();
             return true;
         });
+
+        // The NFC controller selector (init.<device>-nfc.sh) exists on lilac (G8441 PN553 /
+        // SO-02K FeliCa) and poplar (G8341/G8342 PN553 / SO-01K, SOV36, 701SO FeliCa).
+        // Other yoshino devices have a single controller, so the choice is meaningless there.
+        String vendorDevice = SystemProperties.get("ro.product.vendor.device", "");
+        if (vendorDevice.startsWith("lilac") || vendorDevice.startsWith("poplar")) {
+            ListPreference nfcPref = findPreference(NFC_VARIANT);
+            assert nfcPref != null;
+            nfcPref.setValue(SystemProperties.get(NFC_VARIANT_PROP, "auto"));
+            nfcPref.setOnPreferenceChangeListener(this);
+        } else {
+            Preference nfcCategory = findPreference("nfc");
+            if (nfcCategory != null) getPreferenceScreen().removePreference(nfcCategory);
+        }
+
+        ListPreference perfPref = findPreference(PERF_PROFILE);
+        assert perfPref != null;
+        perfPref.setValue(currentPerfProfile(perfPref));
+        perfPref.setOnPreferenceChangeListener(this);
+    }
+
+    /*
+     * The profile init is acting on, or the default when the property is unset
+     * or holds something this build does not offer (for example a value left
+     * behind by a different build). init has no trigger for such a value, so
+     * the power HAL is on the default file and that is what gets shown.
+     */
+    private static String currentPerfProfile(ListPreference pref) {
+        String value = SystemProperties.get(PERF_PROFILE_PROP, PERF_PROFILE_DEFAULT);
+        return pref.findIndexOfValue(value) >= 0 ? value : PERF_PROFILE_DEFAULT;
+    }
+
+    /*
+     * SystemProperties.set throws if the property service refuses the write.
+     * Report that instead of crashing, so the caller can leave the list on the
+     * profile that is still active.
+     */
+    private static boolean applyPerfProfile(Context context, String profile) {
+        try {
+            SystemProperties.set(PERF_PROFILE_PROP, profile);
+            return true;
+        } catch (RuntimeException e) {
+            Toast.makeText(context, R.string.perf_profile_failed, Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    /*
+     * Which NCI tuning file the stack should load for a given controller.
+     * The Sony CXD224x config carries CXD224X_WORKAROUND, FELICA_CONFIG and
+     * FeliCa HCI routing that would be wrong on the NXP part, so it ships under
+     * its own name and is selected here rather than replacing libnfc-nci.conf —
+     * /vendor/etc/libnfc-nci.conf already exists for the NXP HAL and outranks
+     * /system/etc in the stack's search order.
+     *
+     * An empty value means "no override", which sends nfc_config.cc back to its
+     * default libnfc-nci.conf.
+     */
+    static String nfcConfigFileFor(String variant) {
+        return "felica".equals(variant) ? NFC_CFG_FELICA : "";
     }
 
     @Override
@@ -216,6 +278,72 @@ public class DeviceSettingsFragment extends PreferenceFragment implements Prefer
             case NS_SERVICE:
                 Settings.System.putInt(preference.getContext().getContentResolver(), NS_SERVICE, (boolean) o ? 1 : 0);
                 return true;
+            case NFC_VARIANT: {
+                String variant = (String) o;
+                SystemProperties.set(NFC_VARIANT_PROP, variant);
+
+                /*
+                 * For an explicit choice the config file can be set straight
+                 * away. For "auto" it is left to BootReceiver, which learns the
+                 * answer from vendor.nfc.variant once the selector has run.
+                 */
+                if (!"auto".equals(variant)) {
+                    SystemProperties.set(NFC_CFG_PROP, nfcConfigFileFor(variant));
+                }
+
+                /*
+                 * Applied on the next boot rather than swapped live: the driver
+                 * is a kernel module that has claimed the NFC IRQ and its GPIOs,
+                 * and unloading it underneath a running HAL is a far worse
+                 * failure than waiting for a restart.
+                 *
+                 * The reboot is left to the user — this app holds only
+                 * RECEIVE_BOOT_COMPLETED and WRITE_SETTINGS, and adding
+                 * android.permission.REBOOT to the privapp whitelist would be a
+                 * real privilege increase for a convenience button.
+                 */
+                AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
+                builder.setTitle("Reboot to apply");
+                builder.setMessage("The NFC driver is chosen at boot, so this takes effect after you restart the phone.");
+                builder.setPositiveButton("OK", (dialogInterface, i) -> dialogInterface.dismiss());
+                builder.create().show();
+                return true;
+            }
+            case PERF_PROFILE: {
+                String profile = (String) o;
+                ListPreference perfPref = (ListPreference) preference;
+                if (perfPref.findIndexOfValue(profile) < 0) {
+                    return false;
+                }
+                if (profile.equals(currentPerfProfile(perfPref))) {
+                    // Already active. init runs property triggers even when a
+                    // property is set to the value it already has, so writing
+                    // it again would restart the power HAL for nothing.
+                    return true;
+                }
+                if (!PERF_PROFILE_PERFORMANCE.equals(profile)) {
+                    return applyPerfProfile(preference.getContext(), profile);
+                }
+
+                /*
+                 * Performance is the only profile that raises a limit above
+                 * the shipped default, so it is applied only after the user
+                 * has read what it costs. Returning false keeps the list on
+                 * its old value until then; cancelling changes nothing.
+                 */
+                AlertDialog.Builder builder = new AlertDialog.Builder(preference.getContext());
+                builder.setTitle(R.string.perf_profile_performance_title);
+                builder.setMessage(R.string.perf_profile_performance_warning);
+                builder.setPositiveButton("Use Performance", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    if (applyPerfProfile(preference.getContext(), profile)) {
+                        perfPref.setValue(profile);
+                    }
+                });
+                builder.setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss());
+                builder.create().show();
+                return false;
+            }
         }
         return false;
     }

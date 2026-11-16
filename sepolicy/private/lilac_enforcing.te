@@ -1,0 +1,18 @@
+allow kcmdlinectrl sysfs_dt_firmware_android:dir { read open };
+allow misctrl sysfs_dt_firmware_android:dir { read open };
+
+# F-06 (mediaprovider_app -> sysfs_kgsl:lnk_file read) is deliberately NOT
+# written here. It cannot be expressed in either policy partition:
+#   - vendor:  "unknown type mediaprovider_app" -- it is declared in
+#              system/sepolicy/private/mediaprovider_app.te:4 as a coredomain,
+#              so vendor policy cannot see it. (The five sysfs_kgsl rules that
+#              DO live in the vendor file work because bootanim/radio/
+#              system_server/platform_app are declared in system/sepolicy/public/.)
+#   - private: "unknown type sysfs_kgsl" -- that type comes from
+#              device/qcom/sepolicy-legacy-um/legacy/vendor/common/file.te:288
+#              and is vendor-only.
+# It is also not needed: the denial appears in ZERO live logs across all eight
+# collection runs. It survives only in a stale pstore dmesg-ramoops record from
+# an older boot (a RenderThread GPU-info probe). Revisit only if it is ever
+# observed live -- the fix would then be a public-type export or a relabel, not
+# a rule in this file.

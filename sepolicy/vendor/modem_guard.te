@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: Apache-2.0
+# System executable using Sony's system MiscTA wrapper, not a vendor shell.
+type modem_guard, domain, coredomain;
+type modem_guard_exec, exec_type, system_file_type, file_type;
+type modem_guard_history_file, file_type;
+init_daemon_domain(modem_guard)
+hwbinder_use(modem_guard)
+hal_client_domain(modem_guard, hal_allocator)
+hal_client_domain(modem_guard, hal_miscta)
+binder_call(modem_guard, hal_allocator)
+allow modem_guard hidl_memory_hwservice:hwservice_manager find;
+get_prop(modem_guard, hwservicemanager_prop)
+
+# Metadata only for TA. No open/read/write/ioctl on TA and no tad socket access.
+allow modem_guard block_device:dir r_dir_perms;
+allow modem_guard block_device:lnk_file r_file_perms;
+allow modem_guard tad_block_device:blk_file getattr;
+# Existing fsg label is shared with modemst/fsc. Read only, no raw writes.
+allow modem_guard modem_efs_partition_device:blk_file { getattr open read };
+allow modem_guard modem_efs_partition_device:lnk_file r_file_perms;
+r_dir_file(modem_guard, system_file)
+allow modem_guard cache_file:dir search;
+allow modem_guard modemsw_cache_file:dir search;
+allow modem_guard modemsw_cache_file:file rw_file_perms;
+allow modem_guard modemsw_cache_file:dir { add_name write };
+type_transition modem_guard modemsw_cache_file:dir modem_guard_history_file "history";
+allow modem_guard modem_guard_history_file:dir create_dir_perms;
+allow modem_guard modem_guard_history_file:file create_file_perms;
+allow modem_guard kmsg_device:chr_file { open write };
+allow modem_guard kmsg_debug_device:chr_file { open write };
+
+# Execute in Sony's existing domain, rather than giving the guard partition writes.
+domain_auto_trans(modem_guard, modem_switcher_exec, modem_switcher)
+allow modem_guard modem_switcher:process { sigkill signal };
+allow modem_switcher kmsg_debug_device:chr_file write;
+# The stock switcher inherits the guard's init-provided stdio (stdio_to_kmsg) across
+# the domain transition; let it use those descriptors instead of logging fd denials.
+allow modem_switcher modem_guard:fd use;
+
+system_restricted_prop(modem_guard_image_prop)
+set_prop(modem_guard, modem_guard_image_prop)
+get_prop(attach_primer, modem_guard_image_prop)
+get_prop(shell, modem_guard_image_prop)
+vendor_public_prop(vendor_modem_guard_service_prop)
+get_prop(modem_guard, vendor_modem_guard_service_prop)
+get_prop(shell, vendor_modem_guard_service_prop)
+get_prop(modem_guard, init_service_status_prop)

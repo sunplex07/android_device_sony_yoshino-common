@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-License-Identifier: Apache-2.0
+     based on vendor/lineage/overlay/rro_packages/NetworkStackOverlay
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.android.networkstack.overlay.sony_yoshino">
+    <application android:hasCode="false" />
+    <overlay
+        android:isStatic="true"
+        android:priority="200"
+        android:targetPackage="com.android.networkstack"
+        android:targetName="NetworkStackConfig" />
+</manifest>

@@ -47,6 +47,11 @@
                        android:resource="@string/device_settings_summary" />
         </activity>
 
+        <activity
+                android:name=".CellularDebugActivity"
+                android:label="@string/cellular_debug_title"
+                android:exported="false" />
+
         <receiver android:name="com.yoshino.parts.BootReceiver" android:exported="false">
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

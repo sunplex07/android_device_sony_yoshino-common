@@ -1,4 +1,3 @@
-# Gralloc module
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 include $(LOCAL_PATH)/../common.mk
@@ -8,7 +7,7 @@ LOCAL_VENDOR_MODULE           := true
 LOCAL_MODULE_RELATIVE_PATH    := hw
 LOCAL_MODULE_TAGS             := optional
 LOCAL_C_INCLUDES              := $(common_includes)
-LOCAL_CFLAGS                  := $(common_flags) -DLOG_TAG=\"qdgralloc\" -Wall -Werror
+LOCAL_CFLAGS                  := $(common_flags) -DLOG_TAG=\"qdgralloc\" -Wall -Werror -Wno-error
 LOCAL_SHARED_LIBRARIES        := $(common_libs) libqdMetaData libsync libgrallocutils \
                                  android.hardware.graphics.common@1.1
 ifeq ($(TARGET_KERNEL_VERSION), 4.14)
@@ -43,7 +42,6 @@ endif
 
 include $(BUILD_SHARED_LIBRARY)
 
-#libgrallocutils
 include $(CLEAR_VARS)
 LOCAL_MODULE                  := libgrallocutils
 LOCAL_VENDOR_MODULE           := true

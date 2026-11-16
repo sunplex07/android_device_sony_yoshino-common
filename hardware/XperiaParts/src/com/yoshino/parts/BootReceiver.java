@@ -22,6 +22,8 @@ import android.provider.Settings;
 
 import static com.yoshino.parts.Constants.GLOVE_MODE;
 import static com.yoshino.parts.Constants.GLOVE_PROP;
+import static com.yoshino.parts.Constants.NFC_CFG_PROP;
+import static com.yoshino.parts.Constants.NFC_HW_PROP;
 import static com.yoshino.parts.Constants.SMART_STAMINA_MODE;
 import static com.yoshino.parts.Constants.SMART_STAMINA_PROP;
 
@@ -38,5 +40,26 @@ public class BootReceiver extends BroadcastReceiver {
 
         boolean isSmartStaminaModeEnabled = Settings.System.getInt(context.getContentResolver(), SMART_STAMINA_MODE, 0) == 1;
         SystemProperties.set(SMART_STAMINA_PROP, isSmartStaminaModeEnabled ? "1" : "0");
+
+        /*
+         * Keep the NCI config file in step with the NFC controller that
+         * init.lilac-nfc.sh actually selected this boot.
+         *
+         * This is what makes "detect automatically" complete: the selector runs
+         * in a vendor domain and cannot write persist.nfc_cfg.* (it is a core
+         * property), whereas this app can. It publishes the hardware it found as
+         * vendor.nfc.variant and we translate that into the config file name the
+         * NFC stack looks up.
+         *
+         * Only written when it differs, so a device that never changes chips
+         * does not rewrite a persistent property on every boot.
+         */
+        String detected = SystemProperties.get(NFC_HW_PROP, "");
+        if (!detected.isEmpty()) {
+            String want = DeviceSettingsFragment.nfcConfigFileFor(detected);
+            if (!want.equals(SystemProperties.get(NFC_CFG_PROP, ""))) {
+                SystemProperties.set(NFC_CFG_PROP, want);
+            }
+        }
     }
 }

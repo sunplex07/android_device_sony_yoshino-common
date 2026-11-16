@@ -39,4 +39,41 @@
     <string name="ims_summary">Enables features such as IMS, VoLTE, VoWiFi or WiFi calling <b>if it worked on stock</b>.</string>
     <string name="modem_title">Re-apply Modem</string>
     <string name="modem_summary">With enabled IMS, the modem crashes for some carriers if the mbn is not applied at every boot. Use this option to potentially fix such issues.</string>
+
+    <string name="nfc_category">NFC</string>
+    <string name="nfc_variant">NFC controller</string>
+    <string name="nfc_variant_summary">Japanese models (XZ1 Compact SO-02K; XZ1 SO-01K / SOV36 / 701SO) use a Sony CXD224x + ROHM BD7602 FeliCa chip, while the global models use an NXP PN553. Auto detects which one is fitted; change it only if NFC does not work. A reboot is required.</string>
+
+    <string-array name="nfc_variant_entries">
+        <item>Detect automatically</item>
+        <item>NXP PN553 (global)</item>
+        <item>Sony CXD224x / FeliCa (Japan)</item>
+    </string-array>
+    <string-array name="nfc_variant_values">
+        <item>auto</item>
+        <item>nxp</item>
+        <item>felica</item>
+    </string-array>
+
+    <string name="perf_category">Performance</string>
+    <string name="perf_profile">CPU / GPU tuning</string>
+    <string name="perf_profile_summary">Chooses how high the CPU and GPU are allowed to clock. Applies immediately and is kept across reboots. Voltages are fixed in the kernel and are not changed by this setting.</string>
+    <string name="perf_profile_failed">Could not change the tuning profile</string>
+    <string name="perf_profile_performance_title">Performance profile</string>
+    <string name="perf_profile_performance_warning">This lets the big cores stay at 2.46 GHz instead of 2.04 GHz. The phone runs warmer and draws more current under load, which on a worn battery can cause a sudden shutdown at low charge. Low-battery and thermal protection stay active. Switch back to Balanced or Battery saver if you see shutdowns.</string>
+
+    <string-array name="perf_profile_entries">
+        <item>Battery saver \u2014 big cores 1.57 GHz, GPU 515 MHz</item>
+        <item>Balanced (default) \u2014 big cores 2.04 GHz, GPU 670 MHz</item>
+        <item>Performance \u2014 big cores 2.46 GHz, GPU 670 MHz</item>
+    </string-array>
+    <string-array name="perf_profile_values">
+        <item>battery</item>
+        <item>balanced</item>
+        <item>performance</item>
+    </string-array>
+
+    <string name="cellular_category">Cellular</string>
+    <string name="cellular_debug_title">Cellular debug</string>
+    <string name="cellular_debug_summary">Modem status, attach-profile repair and log capture</string>
 </resources>

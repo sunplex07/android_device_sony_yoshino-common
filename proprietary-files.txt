@@ -1,15 +1,8 @@
-## All proprietary files from this list, unless pinned and noted otherwise,
-## are from either Xperia XZ Premium (DSDS) (47.2.A.10.107), Xperia XZ1
-## (Canada / DSDS / KDDI) (47.2.A.11.228) and Xperia XZ1 Compact (47.2.A.11.228).
-
-# AUDIO
 etc/audio_policy.conf
 
-# BLUETOOTH
 lib/com.qualcomm.qti.bluetooth_audio@1.0.so
 lib64/com.qualcomm.qti.bluetooth_audio@1.0.so
 
-# CAMERA
 lib/libcacao_client.so
 lib/libcacao_pal.so
 lib/libcacao_process_ctrl_gateway.so
@@ -20,13 +13,14 @@ lib/vendor.somc.hardware.camera.cacao@3.0.so
 lib/vendor.somc.hardware.camera.cacao@3.1.so
 lib/vendor.somc.hardware.camera.device@1.0.so
 lib/vendor.somc.hardware.camera.provider@1.0.so
+lib64/libcacao_client.so
+lib64/libcacao_pal.so
+lib64/libimageprocessorjni.so
 
-# CAMERA_POSTPROCESSING
 lib/libjni_imageutil.so
 lib/libjni_snapcammosaic.so
 lib/libjni_snapcamtinyplanet.so
 
-# CNE - from from FP3 - 6.A.025.0
 product/etc/permissions/vendor.qti.hardware.data.connection-V1.0-java.xml|335d6da6763240d58a1598f95bed50bb80e3e71d|75e8a824d368cd4172985c884796381327d950da
 product/etc/permissions/vendor.qti.hardware.data.connection-V1.1-java.xml|f21207db1805ec6ba512f526b795822794ff6274|620c9fa0047bb681e918af2d1e7a98c648f45fb7
 system_ext/framework/com.quicinc.cne.api-V1.0-java.jar|31ba1bfae2830f87e77844cfb96913271dac0925
@@ -90,16 +84,16 @@ system_ext/lib64/vendor.qti.ims.rcsconfig@2.1.so|37c2b6333ce0fbeb8e2a66b668b6822
 system_ext/lib64/vendor.qti.latency@2.0.so|346a9a67699df13a6c553bc3727c0e07b27186c3
 system_ext/lib64/vendor.qti.latency@2.1.so|6f1aabb40bc6f90ec39a1f55c29a6ba63a326f60
 
-# CUSTOMIZATIONSELECTOR
+etc/permissions/com.sonymobile.camera.addon.xml
 etc/permissions/com.sonymobile.miscta.xml
 etc/public.libraries-sony.txt
+framework/com.sonymobile.camera.addon_impl.jar
 framework/com.sonymobile.miscta_impl.jar
 lib/libMiscTAApi.sony.so
 lib/libMiscTaWrapper.so
 lib64/libMiscTAApi.sony.so
 lib64/libMiscTaWrapper.so
 
-# DISPLAY
 etc/permissions/com.qti.snapdragon.sdk.display.xml
 framework/com.qti.snapdragon.sdk.display.jar
 lib64/libsdm-disp-apis.so:vendor/lib64/libsdm-disp-apis.so
@@ -110,7 +104,6 @@ lib64/vendor.display.color@1.2.so
 lib64/vendor.display.postproc@1.0.so
 lib64/vendor.qti.hardware.qdutils_disp@1.0.so
 
-# DPM - from from FP3 - 6.A.025.0
 framework/tcmclient.jar|cdd1ea7143a5a7acc3909b5cfa706650179647c7
 system_ext/bin/dpmd|dc94ffe90c6658b0bc99c64f68517c4048d0321a
 system_ext/etc/dpm/dpm.conf|95e27da8c989e96c6faea6f0697bce11955b62a5
@@ -126,7 +119,6 @@ system_ext/lib64/libdpmframework.so|235fbb48b47baebd48dbe56f72c77d97ca12c07c
 system_ext/lib64/libdpmtcm.so|dff3d3dbacd18ed55b5758a174f5016ef9e7a896
 system_ext/priv-app/dpmserviceapp/dpmserviceapp.apk|10828ba0d987fa884ad0b4a87a46bf9f505535ea
 
-# DSP
 lib/libadsprpc_system.so
 lib/libcdsprpc_system.so
 lib/libmdsprpc_system.so
@@ -138,11 +130,9 @@ lib64/libmdsprpc_system.so
 lib64/libsdsprpc_system.so
 lib64/libseemore.so
 
-# FINGERPRINT_EXTENSION
 etc/permissions/com.fingerprints.extension.xml
 framework/com.fingerprints.extension.jar
 
-# FIRMWARE
 etc/firmware/cmnlib.b00
 etc/firmware/cmnlib.b02
 etc/firmware/cmnlib.b03
@@ -191,26 +181,20 @@ etc/firmware/tztpm.b05
 etc/firmware/tztpm.b06
 etc/firmware/tztpm.b07
 
-# GRAPHICS
 lib/libOpenCL_system.so
 lib64/libOpenCL_system.so
 
-# LIGHT
 lib/vendor.semc.hardware.light@1.0.so
 lib64/vendor.semc.hardware.light@1.0.so
 
-# MEDIA
 lib/vendor.qti.hardware.vpp@1.1.so
 lib64/vendor.qti.hardware.vpp@1.1.so
 
-# MODEM
 bin/sony-modem-switcher
 
-# MSS
 bin/mssconfig
 etc/init/mssconfig.rc
 
-# QCRIL_RADIO - from from FP3 - 6.A.025.0
 system_ext/app/QtiTelephonyService/QtiTelephonyService.apk|341ac4f8b754883df97f2e9920f1e9a255a6a160
 system_ext/app/embms/embms.apk|09134a1bd2d67e55caf81af08ac44f02abd55d18
 system_ext/etc/permissions/embms.xml|22e7474091f9f71f02dd0cfc76cfa8848a46f079
@@ -222,7 +206,6 @@ system_ext/framework/qcrilhook.jar|2851c62bf5d823c4228bfc6c56613934517ffdee
 system_ext/framework/uimlpalibrary.jar|785485628d349ccd5006c3aec47e2d82c8e14191
 system_ext/priv-app/qcrilmsgtunnel/qcrilmsgtunnel.apk|87719275d1e87dec4b3e9f1a8e7373c7937c9dd8
 
-# QSEECOMD
 lib/libGPTEE_system.so
 lib/libsecureui_svcsock_system.so
 lib/vendor.qti.hardware.tui_comm@1.0.so
@@ -230,11 +213,9 @@ lib64/libGPTEE_system.so
 lib64/libsecureui_svcsock_system.so
 lib64/vendor.qti.hardware.tui_comm@1.0.so
 
-# QTI_ANT
 lib/com.qualcomm.qti.ant@1.0.so
 lib64/com.qualcomm.qti.ant@1.0.so
 
-# QTI_DRM
 lib/libFidoCryptoJNI.so
 lib/libFidoCrypto_system.so
 lib/libGPQTEEC_system.so
@@ -248,10 +229,8 @@ lib64/libQTEEConnector_system.so
 lib64/libseccam.so
 lib64/vendor.qti.hardware.qteeconnector@1.0.so
 
-# QTI_ESEPOWERMANAGER
 lib64/vendor.qti.esepowermanager@1.0.so
 
-# QTI_IMS - from from FP3 - 6.A.025.0
 system_ext/app/imssettings/imssettings.apk|4c9c654c15a65bf0cc298416fce2ee404df6b415
 system_ext/etc/permissions/com.qualcomm.qti.imscmservice-V2.0-java.xml|bd9fc166b542b4e730f194ebc996957770d9d497
 system_ext/etc/permissions/com.qualcomm.qti.imscmservice-V2.1-java.xml|b40fc74f7d5e58b4e918f952b89a79cf2a5c4088
@@ -308,11 +287,9 @@ system_ext/lib64/vendor.qti.ims.factory@1.1.so|c6c1813b2c6bb68c8c38a6b5ddf320b41
 system_ext/lib64/vendor.qti.imsrtpservice@3.0.so|4cf9e97f526c6278c5e2136e00d1fb800fb941aa
 system_ext/priv-app/ims/ims.apk|16b82e1e0113beb7fb3a62a9a5513b317675d96e
 
-# QTI_QMI - from from FP3 - 6.A.025.0
 system_ext/etc/permissions/qti_libpermissions.xml|593bcb72cce68ceb0a70f50bcae7d460114e7c62
 system_ext/etc/permissions/qti_permissions.xml|e6ff4572352b1a4f91b6b9d7cbb1cad9924410a0
 
-# QTI_RADIO - from from FP3 - 6.A.025.0
 system_ext/lib64/vendor.qti.hardware.radio.am@1.0.so|d5e66f2657ee00a277f96e19454ad6c02720b7c2
 system_ext/lib64/vendor.qti.hardware.radio.lpa@1.0.so|210a58bbede876060da62db333fed945e2cd81bf
 system_ext/lib64/vendor.qti.hardware.radio.qcrilhook@1.0.so|a387855f243b03e424d80e8e1a20fb51d7e52f7d
@@ -330,23 +307,17 @@ system_ext/lib64/vendor.qti.hardware.radio.uim_remote_client@1.1.so|0bb666044af5
 system_ext/lib64/vendor.qti.hardware.radio.uim_remote_client@1.2.so|cdf72f6b0a1646459ba7f1f062cc9d48d1976299
 system_ext/lib64/vendor.qti.hardware.radio.uim_remote_server@1.0.so|f128892e21879fce3434fb6b51bed99e3cc4542c
 
-# SEMC_IDD
 lib/vendor.semc.system.idd@1.0.so
 lib64/vendor.semc.system.idd@1.0.so
 
-# SEMC_SECD
 lib64/vendor.somc.hardware.security.secd@1.0.so
 
-# SOMC_MISCTA - from tama - 52.1.A.3.49
 lib/vendor.somc.hardware.miscta@1.0.so|4a968e39a9ad5a6bedb36a61f12f3e4a649745c8
 lib64/vendor.somc.hardware.miscta@1.0.so|3349b02e83ec7fe7d7b1cbc698fbc52e156c3642
 
-# TRIMAREA
 etc/init/taimport.rc
 lib64/libdevice_security_client.so
 
-
-# OpenCL
 vendor/lib64/libOpenCL.so
 vendor/lib64/libllvm-glnext.so
 vendor/lib64/libgsl.so
@@ -365,7 +336,5 @@ vendor/lib/egl/libGLESv2_adreno.so
 vendor/lib64/libCB.so
 vendor/lib/libCB.so
 
-
-# UDATEMISCTA
 bin/taimport
 etc/init/updatemiscta.rc

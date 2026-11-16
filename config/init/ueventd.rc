@@ -282,7 +282,12 @@ firmware_directories /vendor/firmware_mnt/image/
 /sys/devices/virtual/net/bond0 queues/rx-0/rps_cpus 0660 system system
 
 # NFC
+# lilac ships one ROM for two NFC controllers; only the node whose driver was
+# loaded actually appears. See device/sony/lilac/rootdir/bin/init.lilac-nfc.sh.
 /dev/pn553                 0660    nfc         nfc
+# SO-02K (docomo): Sony CXD224x + ROHM BD7602 FeliCa
+/dev/cxd224x-i2c           0660    nfc         nfc
+/dev/bd7602-i2c            0660    nfc         nfc
 
 # LED
 /sys/devices/soc/800f000.qcom,spmi/spmi-0/spmi0-03/800f000.qcom,spmi:qcom,pmi8998@3:qcom,leds@d000/leds/led:* max_brightness 0664 system system
@@ -355,6 +360,10 @@ firmware_directories /vendor/firmware_mnt/image/
 /sys/class/dual_role_usb/*	data_role	0660	system	system
 /sys/class/dual_role_usb/*	power_role	0660	system	system
 /sys/class/dual_role_usb/*	mode		0660	system	system
+
+# TA: vold replays block add events after init's defensive chown. Match the
+# actual node so ueventd MakeDevice(EEXIST) cannot undo the intended DAC.
+/dev/block/sda1 0770 oem_2997 oem_2997
 
 # KGSL
 /sys/class/kgsl/kgsl-3d0      perfcounter  0660   root    shell

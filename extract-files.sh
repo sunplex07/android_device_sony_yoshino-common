@@ -1,17 +1,10 @@
 #!/bin/bash
-#
-# Copyright (C) 2016 The CyanogenMod Project
-# Copyright (C) 2017-2020 The LineageOS Project
-#
-# SPDX-License-Identifier: Apache-2.0
-#
 
 set -e
 
 DEVICE_COMMON=yoshino-common
 VENDOR=sony
 
-# Load extract_utils and do some sanity checks
 MY_DIR="${BASH_SOURCE%/*}"
 if [[ ! -d "${MY_DIR}" ]]; then MY_DIR="${PWD}"; fi
 
@@ -24,7 +17,6 @@ if [ ! -f "${HELPER}" ]; then
 fi
 source "${HELPER}"
 
-# Default to sanitizing the vendor folder before extraction
 CLEAN_VENDOR=true
 
 KANG=
@@ -53,33 +45,22 @@ if [ -z "${SRC}" ]; then
     SRC="adb"
 fi
 
-
-# Initialize the helper
 setup_vendor "${DEVICE_COMMON}" "${VENDOR}" "${ANDROID_ROOT}" true "${CLEAN_VENDOR}"
 
 extract "${MY_DIR}/proprietary-files.txt" "${SRC}" "${KANG}" --section "${SECTION}"
 extract "${MY_DIR}/proprietary-files-vendor.txt" "${SRC}" "${KANG}" --section "${SECTION}"
 
-#
-# Blobs fixup start
-#
-
 DEVICE_COMMON_ROOT="${ANDROID_ROOT}"/vendor/"${VENDOR}"/"${DEVICE_COMMON}"/proprietary
 
-# Let ffu load ufs firmare files from /etc
 sed -i 's/\/lib\/firmware\/ufs/\/etc\/firmware\/ufs/g' "${DEVICE_COMMON_ROOT}"/vendor/bin/ffu
 
-# Change xml version from 2.0 to 1.0
 sed -i 's/version\=\"2\.0\"/version\=\"1\.0\"/g' "${DEVICE_COMMON_ROOT}"/product/etc/permissions/vendor.qti.hardware.data.connection-V1.0-java.xml
 sed -i 's/version\=\"2\.0\"/version\=\"1\.0\"/g' "${DEVICE_COMMON_ROOT}"/product/etc/permissions/vendor.qti.hardware.data.connection-V1.1-java.xml
 
-# Add a restorecon for /persist/wlan to taimport_vendor.rc
 sed -i '4 a\    restorecon /persist/wlan' "${DEVICE_COMMON_ROOT}"/vendor/etc/init/taimport_vendor.rc
 
-# Patch lib-imsvideocodec.so to load libgui_shim.so
 grep -q "libgui_shim.so" "${DEVICE_COMMON_ROOT}"/system_ext/lib64/lib-imsvideocodec.so || "${PATCHELF}" --add-needed "libgui_shim.so" "${DEVICE_COMMON_ROOT}"/system_ext/lib64/lib-imsvideocodec.so
 
-# Replace libstdc++.so with libstdc++_vendor.so
 "${PATCHELF}" --replace-needed "libstdc++.so" "libstdc++_vendor.so" "${DEVICE_COMMON_ROOT}"/lib/libjni_imageutil.so
 "${PATCHELF}" --replace-needed "libstdc++.so" "libstdc++_vendor.so" "${DEVICE_COMMON_ROOT}"/lib/libjni_snapcammosaic.so
 "${PATCHELF}" --replace-needed "libstdc++.so" "libstdc++_vendor.so" "${DEVICE_COMMON_ROOT}"/lib/libjni_snapcamtinyplanet.so
@@ -108,7 +89,6 @@ grep -q "libgui_shim.so" "${DEVICE_COMMON_ROOT}"/system_ext/lib64/lib-imsvideoco
 "${PATCHELF_0_17_2}" --replace-needed "libstdc++.so" "libstdc++_vendor.so" "${DEVICE_COMMON_ROOT}"/vendor/lib/libsony_fooddetect.so
 "${PATCHELF_0_17_2}" --replace-needed "libstdc++.so" "libstdc++_vendor.so" "${DEVICE_COMMON_ROOT}"/vendor/lib/libsony_naruto.so
 
-# Use libhidlbase-v32 for select Android P blobs
 "${PATCHELF_0_17_2}" --replace-needed "libhidlbase.so" "libhidlbase-v32.so" "${DEVICE_COMMON_ROOT}"/bin/sony-modem-switcher
 "${PATCHELF}" --replace-needed "libhidlbase.so" "libhidlbase-v32.so" "${DEVICE_COMMON_ROOT}"/lib/com.qualcomm.qti.ant@1.0.so
 "${PATCHELF}" --replace-needed "libhidlbase.so" "libhidlbase-v32.so" "${DEVICE_COMMON_ROOT}"/lib/com.qualcomm.qti.bluetooth_audio@1.0.so
@@ -140,14 +120,26 @@ grep -q "libgui_shim.so" "${DEVICE_COMMON_ROOT}"/system_ext/lib64/lib-imsvideoco
 "${PATCHELF}" --replace-needed "libhidlbase.so" "libhidlbase-v32.so" "${DEVICE_COMMON_ROOT}"/lib64/vendor.semc.system.idd@1.0.so
 "${PATCHELF}" --replace-needed "libhidlbase.so" "libhidlbase-v32.so" "${DEVICE_COMMON_ROOT}"/lib64/vendor.somc.hardware.security.secd@1.0.so
 
-# Replace writepid with task_profiles command for cgroup migration
 sed -i 's/writepid\ \/dev\/cpuset\/foreground\/tasks/task_profiles\ ProcessCapacityHigh/g' "${DEVICE_COMMON_ROOT}"/vendor/etc/init/android.hardware.drm@1.1-service.widevine.rc
 sed -i 's/writepid\ \/dev\/cpuset\/system-background\/tasks/task_profiles\ ServiceCapacityLow/g' "${DEVICE_COMMON_ROOT}"/vendor/etc/init/init.illumination_service.rc
 sed -i 's/writepid\ \/dev\/cpuset\/system-background\/tasks/task_profiles\ ServiceCapacityLow/g' "${DEVICE_COMMON_ROOT}"/vendor/etc/init/init.touchbacklightd.rc
 sed -i 's/writepid \/dev\/cpuset\/camera-daemon\/tasks\ \/dev\/stune\/top-app\/tasks/task_profiles\ CameraServiceCapacity\ MaxPerformance/g' "${DEVICE_COMMON_ROOT}"/vendor/etc/init/vendor.somc.hardware.camera.provider@1.0-service.rc
 
-#
-# Blobs fixup end
-#
+CAM_RC="${DEVICE_COMMON_ROOT}"/vendor/etc/init/vendor.somc.hardware.camera.provider@1.0-service.rc
+if ! grep -q "cama15" "${CAM_RC}"; then
+  sed -i '/capabilities SYS_NICE/a\    setenv LD_PRELOAD /vendor/lib/libsensorfix.so:/vendor/lib/cama15/libutils.so:/vendor/lib/cama15/libui.so:/vendor/lib/cama15/libc++.so\n    setenv LD_LIBRARY_PATH /vendor/lib/cama15:/vendor/lib:/system/lib' "${CAM_RC}"
+fi
+
+# Same AT_SECURE problem as the camera provider: cacaoserver's LD_PRELOAD is
+# discarded under SELinux enforcing, so the shims must be real DT_NEEDED entries.
+# libcacaoreffix INTERPOSES symbols that libutils already defines (RefBase,
+# MemoryHeapBase, MemoryBase), so it has to be searched BEFORE libutils --
+# patchelf prepends, hence the reverse order here. Appending would link cleanly
+# and silently do nothing. See docs/27 in lilac-eis.
+CACAOSERVER="${DEVICE_COMMON_ROOT}"/bin/cacaoserver
+if ! "${PATCHELF}" --print-needed "${CACAOSERVER}" | grep -q libcacaoreffix; then
+    "${PATCHELF}" --add-needed libsonypiecompat.so "${CACAOSERVER}"
+    "${PATCHELF}" --add-needed libcacaoreffix.so "${CACAOSERVER}"
+fi
 
 "${MY_DIR}"/setup-makefiles.sh

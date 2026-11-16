@@ -1,0 +1,102 @@
+allow hal_graphics_allocator_default sysfs_kgsl:lnk_file read;
+allow bootanim sysfs_kgsl:lnk_file read;
+allow radio sysfs_kgsl:lnk_file read;
+allow system_server sysfs_kgsl:lnk_file read;
+allow platform_app sysfs_kgsl:lnk_file read;
+# F-06 (mediaprovider_app, same sysfs_kgsl lookup) lives in the PRIVATE
+# lilac_enforcing.te -- it is a coredomain and is not visible to vendor policy.
+
+get_prop(qtidataservices_app, vendor_default_prop)
+
+# F-01: vendor_dataservice_app is a DIFFERENT domain from qtidataservices_app
+# above, and both run concurrently on this device:
+#   u:r:qtidataservices_app:s0   u0_a89  .qtidataservices
+#   u:r:vendor_dataservice_app:s0  radio  .dataservices
+# The rule above only covers the first, so .dataservices was still denied on
+# every boot (32 occurrences across the collection matrix). Kept as a separate
+# rule rather than widening the existing one -- these are distinct domains and
+# should stay individually auditable.
+get_prop(vendor_dataservice_app, vendor_default_prop)
+
+# F-08: the Sony excal camera HAL reads camera.disable_zsl_mode
+# (device/sony/yoshino-common/vendor.prop:114). That property was unlabeled, so
+# it fell into the catch-all default_prop and the HAL was denied reading it.
+# FIXED BY RELABELING it to vendor_somc_camera_prop in property_contexts, which
+# is the type the other Sony camera properties already use -- NOT by granting
+# get_prop(hal_camera_somc, default_prop), which would hand the camera HAL read
+# access to every unlabeled property on the system.
+get_prop(hal_camera_somc, vendor_somc_camera_prop)
+
+# F-03: ro.bpf.kver_override (device/sony/lilac/vendor.prop:10, A16 bpf work).
+#
+# RELABEL ATTEMPTED AND REVERTED -- IT BOOTLOOPED THE DEVICE. Recording why, so
+# nobody tries it again:
+#
+# Android property types are not per-property permissions. Each type has ONE
+# shared backing file in /dev/__properties__, and reading ANY property in that
+# group needs read access to the group file. ro.bpf.kver_override sat in
+# default_prop alongside ~1165 other properties that every domain could already
+# read. Moving it to a fresh vendor_bpf_kver_prop type created a new backing
+# file NOBODY had access to, and this rule granted only write, to one domain.
+#
+# Result on first enforcing boot: 231 enforced denials --
+#   zygote 96, netd 75, bpfloader 10, gpuservice/bootanim/lmkd 4 each
+# then the real chain: bpfloader could not read the property -> BPF programs
+# never pinned to /sys/fs/bpf/netd_shared/ -> netd "Failed to initialize
+# BandwidthController (Operation not permitted)" -> netd exited 4x before boot
+# -> init killed zygote as an updatable-component failure -> bootloop.
+#
+# CORRECTION (twice over -- recording both so this is not retried):
+#
+# (a) I called the write denial "harmless, the value ships in vendor.prop".
+#     FALSE. ro.* props are still SET AT RUNTIME by vendor_init from
+#     vendor.prop. Denied, ro.bpf.kver_override reads EMPTY ->
+#     "kernel version < 4.9.0 is unsupported" -> netd BandwidthController
+#     EPERM -> netd exits 4x -> bootloop.
+#
+# (b) I then wrote set_prop(vendor_init, default_prop), citing domain.te:839/841
+#     as exempting vendor_init. Those exemptions are for exported_default_prop
+#     and vendor_default_prop -- DIFFERENT TYPES. Plain default_prop is governed
+#     by system/sepolicy/private/property.te:796:
+#         neverallow { domain -init } default_prop:property_service set;
+#     ONLY init. The build correctly refused it (libsepol neverallow failure).
+#
+# The legal fix: relabel into vendor_default_prop, which
+# system/sepolicy/private/domain.te:841 DOES exempt vendor_init from:
+#     neverallow { domain -init -vendor_init } vendor_default_prop:...set;
+# It is a shared vendor type (vendor_public_prop/vendor_internal_prop in
+# system/sepolicy/public/property.te:350,354), so unlike the private type I
+# invented earlier, every reader keeps access -- no repeat of the 231-denial
+# starvation.
+# (set_prop is emitted by system_vendor_config_prop in property.te)
+#
+# (c) The macro alone was STILL not enough: it makes the type
+#     system_public_property_type, which is EXEMPTED from the neverallows that
+#     would block reads -- but an exemption only means "not forbidden", it does
+#     not GRANT anything. Readers were starved again (zygote 112, netd 87,
+#     bpfloader 10, "libc: Access denied finding property").
+#     default_prop worked only because system/sepolicy/private/domain.te:498,508
+#     explicitly does get_prop(domain, ...) for it. So the new type needs the
+#     same explicit domain-wide read grant. Precedent for doing this from vendor
+#     policy: device/qcom/sepolicy-legacy-um/legacy/vendor/common/domain.te:50,74,75.
+get_prop(domain, vendor_bpf_kver_prop)
+
+allow vendor_init device:file { create write open };
+allow vendor_init cgroup:file getattr;
+
+# F-02: pd-mapper attempts CAP_SYS_ADMIN at ~9s of boot and does not need it --
+# the service runs correctly and logs no errors with the capability denied, and
+# upstream QTI policy (device/qcom/sepolicy-legacy-um/.../pd_services.te)
+# deliberately grants only { setpcap setuid setgid net_bind_service }.
+# Suppress rather than allow: granting sys_admin to a QMI daemon for an
+# operation it does not need would be a real privilege expansion.
+dontaudit vendor_pd_mapper self:capability sys_admin;
+
+# F-07: ip6tables-wrapper attempts CAP_SYS_ADMIN at ~9s of boot. Allowing it is
+# not merely unwise, it is FORBIDDEN -- AOSP has
+#   neverallow netutils_wrapper self:global_capability_class_set ~{ net_admin net_raw };
+# (system/sepolicy/private/netutils_wrapper.te:51), so an allow would fail the
+# neverallow build check. ip6tables rules apply correctly with it denied
+# (verified: oem_in/bw_INPUT chains present). This mirrors upstream's own
+# treatment of sys_resource on line 47 of that same file.
+dontaudit netutils_wrapper self:global_capability_class_set sys_admin;

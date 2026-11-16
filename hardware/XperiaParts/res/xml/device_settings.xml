@@ -14,6 +14,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
+        android:key="perf"
+        android:title="@string/perf_category">
+
+        <ListPreference
+            android:defaultValue="balanced"
+            android:entries="@array/perf_profile_entries"
+            android:entryValues="@array/perf_profile_values"
+            android:icon="@drawable/ic_outline_phonelink_setup_24"
+            android:key="perf_profile"
+            android:summary="@string/perf_profile_summary"
+            android:title="@string/perf_profile" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:key="g"
             android:title="@string/gesture">
 
@@ -79,6 +94,21 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="nfc"
+        android:title="@string/nfc_category">
+
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/nfc_variant_entries"
+            android:entryValues="@array/nfc_variant_values"
+            android:icon="@drawable/ic_outline_nfc_24"
+            android:key="nfc_variant"
+            android:summary="@string/nfc_variant_summary"
+            android:title="@string/nfc_variant" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="ns"
         android:title="@string/network_switcher">
 
@@ -96,6 +126,21 @@
             android:key="ns_service"
             android:summary="@string/ns_summary"
             android:title="@string/network_switcher_service" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+            android:key="cell"
+            android:title="@string/cellular_category">
+
+        <Preference
+            android:key="cellular_debug"
+            android:title="@string/cellular_debug_title"
+            android:summary="@string/cellular_debug_summary">
+            <intent android:targetPackage="com.yoshino.parts"
+                    android:targetClass="com.yoshino.parts.CellularDebugActivity" />
+        </Preference>
 
     </PreferenceCategory>
 

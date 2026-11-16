@@ -1,0 +1,32 @@
+type attach_primer, domain;
+type attach_primer_exec, exec_type, vendor_file_type, file_type;
+type attach_primer_data_file, file_type, data_file_type;
+
+init_daemon_domain(attach_primer)
+
+
+# QMI over kernel MSM IPC Router (same pattern as cnd/adpl in qcom policy).
+allow attach_primer self:socket create_socket_perms;
+allowxperm attach_primer self:socket ioctl msm_sock_ipc_ioctls;
+
+allow attach_primer attach_primer_data_file:dir create_dir_perms;
+allow attach_primer attach_primer_data_file:file create_file_perms;
+
+# stdio_to_kmsg log sink (only denial harvested from the permissive v1 boot).
+allow attach_primer kmsg_debug_device:chr_file w_file_perms;
+
+# Benign capability probe observed under enforcing (primer fully functional).
+dontaudit attach_primer self:capability sys_admin;
+
+# NOTE: an app may NOT set vendor properties (neverallow, system/sepolicy/private/
+# property.te:488). The Cellular-debug UI is therefore read-only; repair happens
+# automatically in the boot primer (self-heal), or manually via root helpers.
+
+# Primer publishes read-only status for the Cellular-debug UI. A vendor domain MAY
+# set vendor properties; apps may only read them (see property.te neverallow).
+vendor_public_prop(vendor_lilac_cell_prop)
+set_prop(attach_primer, vendor_lilac_cell_prop)
+# Explicit read grants: modern sepolicy does not give blanket property read access.
+get_prop(system_app, vendor_lilac_cell_prop)
+get_prop(shell, vendor_lilac_cell_prop)
+get_prop(platform_app, vendor_lilac_cell_prop)

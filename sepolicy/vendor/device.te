@@ -6,3 +6,7 @@ type ramdump_block_device, dev_type;
 type tad_block_device, dev_type;
 type audio_hweffect_device, dev_type;
 type lensctrl_device, dev_type;
+# /dev/i2c-7 (c1b5000.i2c, BLSP2 QUP1) — the NFC bus. Given its own type so the
+# variant selector can probe it for the FeliCa parts without being handed the
+# generic `device` label, which would cover every unlabelled node in /dev.
+type nfc_i2c_device, dev_type;

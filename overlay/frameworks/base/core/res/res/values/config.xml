@@ -208,4 +208,10 @@
     </array>
     <!-- 允許將 SD 卡格式化為內部儲存空間 -->
     <bool name="config_adoptableStorage">true</bool>
+    <!-- Deep doze: DeviceIdleController needs a wake-up motion sensor and only falls back to
+         significant motion (type 17), which this QTI sensor stack does not expose, so
+         mMotionSensor was null and the device never left light idle. Use the QTI
+         "Android Motion Detector" (TYPE_MOTION_DETECT = 30, wake-up, one-shot), as other
+         QTI devices do (e.g. motorola sm6125 trees). -->
+    <integer name="config_autoPowerModeAnyMotionSensor">30</integer>
 </resources>

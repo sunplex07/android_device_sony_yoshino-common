@@ -27,4 +27,7 @@ allow charge_service sysfs_wake_lock:file rw_file_perms;
 allow charge_service kmsg_device:chr_file rw_file_perms;
 
 # Don't log attempts to look for idd
+# Lifted on SELinux collection builds (WITH_SELINUX_COLLECT=true)
+ifdef(`lilac_collect_denials', `', `
 dontaudit charge_service default_android_hwservice:hwservice_manager find;
+')

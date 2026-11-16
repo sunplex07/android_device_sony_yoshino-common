@@ -122,7 +122,31 @@ on post-fs
     restorecon /dev/block/bootdevice/by-name/modemst2
     restorecon /dev/block/bootdevice/by-name/TA
 
-    # Setup owner and permissions of TA for tad
+    # Setup owner and permissions of TA for tad.
+    #
+    # The `wait' is REQUIRED and must not be dropped again. tad runs as
+    # oem_2997 (vendor_tad) and opens /dev/block/sda1 directly, but ueventd
+    # creates that node root:root 0600 -- so without this chown tad dies with
+    # "Failed to open /dev/block/bootdevice/by-name/TA (Permission denied)"
+    # and respawns every 5s forever.
+    #
+    # The failure is SILENT without the wait: init's do_chown/do_chmod use
+    # ErrnoErrorIgnoreEnoent (system/core/init/builtins.cpp:1001,1013), so if
+    # sda1 has not been created yet the lchown() ENOENT is swallowed and the
+    # command is logged as SUCCEEDED while doing nothing at all. Nothing
+    # re-chowns it later, so the node stays root:root 0600 for the whole boot.
+    #
+    # Downstream damage when tad is dead: modem_switcher cannot reach TAD,
+    # cannot read the cust unit, exits 255 and falls back to the *default*
+    # modem config ("MS Modem Switcher status: 2 / Current Modem Config:
+    # default", ro.semc.version.cust.active empty). The USIM app then never
+    # leaves APPSTATE_DETECTED -> no SIM, no signal, no IMS/VoLTE.
+    #
+    # History: 050fe042 moved this block from `on init' to `on post-fs' to
+    # dodge a permissions reset, but dropped the `wait' that 93bb633c had.
+    # That was survivable under permissive; under enforcing the boot ordering
+    # shifted enough that post-fs now runs before sda1 exists.
+    wait /dev/block/sda1
     chown oem_2997 oem_2997 /dev/block/sda1
     chmod 0770 /dev/block/sda1
 
@@ -158,8 +182,17 @@ on post-fs
     # Update dm-verity state and set partition.*.verified properties
     verity_update_state
 
-    # SONY: Switch the modem if needed
-    start modem_switcher
+    # Repair through init, never grant the production guard raw TA access.
+    chown oem_2997 oem_2997 /dev/block/sda1
+    chmod 0770 /dev/block/sda1
+    # Start (never restart) tad: a healthy tad must not be killed here; one that
+    # crashed on a bad TA DAC is brought up after the repair above.
+    start tad
+    # Synchronous barrier: late-fs/post-fs-data/boot (class core: rmt_storage,
+    # per_mgr -> per_proxy -> PIL) cannot overtake this transaction. All TA
+    # dependencies were explicitly started above; no queued property action
+    # is needed by the guard. timeout_period is an init-enforced backstop.
+    exec_start modem_switcher_guard
 
 on post-fs-data
     # To observe dnsmasq.leases file for dhcp information of soft ap.

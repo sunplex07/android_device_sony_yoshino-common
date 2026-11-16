@@ -1,5 +1,3 @@
-# property_contexts
-
 DEVICE_PROVISIONED                   u:object_r:device_provisioned_prop:s0
 
 adb.network.port.es                  u:object_r:adb_network_prop:s0
@@ -28,6 +26,8 @@ rild.libpath                         u:object_r:vendor_rild_libpath_prop:s0
 
 ro.network.auto_selection_only       u:object_r:vendor_radio_prop:s0
 
+ro.telephony.use_old_mnc_mcc_format  u:object_r:vendor_telephony_mnc_prop:s0
+
 ro.semc.version.                     u:object_r:semc_version_prop:s0
 ro.semc.product.                     u:object_r:semc_product_prop:s0
 ro.somc.secureadb                    u:object_r:secureadb_prop:s0
@@ -53,6 +53,24 @@ vendor.smartstamina.touchreport      u:object_r:vendor_clearpad_prop:s0
 
 wifi.active.interface                u:object_r:wifi_active_prop:s0
 
-# Camera
 vendor.camera.sensor.name.front      u:object_r:vendor_somc_camera_prop:s0
+# Sony's legacy libcameralight blob reads the unprefixed name.
+# Reuse the camera-only type; do not grant access to default_prop.
+libcameralight.force_off             u:object_r:vendor_somc_camera_prop:s0 exact string
 vendor.libcameralight.force_off      u:object_r:vendor_somc_camera_prop:s0
+
+camera.disable_zsl_mode               u:object_r:vendor_somc_camera_prop:s0
+ro.bpf.kver_override                  u:object_r:vendor_bpf_kver_prop:s0
+
+persist.sys.nfc_variant                u:object_r:vendor_nfc_variant_prop:s0
+persist.sys.perf_profile               u:object_r:vendor_perf_profile_prop:s0 exact string
+vendor.nfc.variant                     u:object_r:vendor_nfc_hw_prop:s0
+vendor.lilac.cell.    u:object_r:vendor_lilac_cell_prop:s0
+
+sys.modem_guard.image       u:object_r:modem_guard_image_prop:s0 exact string
+init.svc.tad                u:object_r:init_service_status_prop:s0 exact string
+init.svc.vendor.rmt_storage u:object_r:vendor_modem_guard_service_prop:s0 exact string
+init.svc.vendor.per_mgr     u:object_r:vendor_modem_guard_service_prop:s0 exact string
+init.svc.vendor.per_proxy   u:object_r:vendor_modem_guard_service_prop:s0 exact string
+init.svc.vendor.qcrild      u:object_r:vendor_modem_guard_service_prop:s0 exact string
+init.svc.vendor.qcrild2     u:object_r:vendor_modem_guard_service_prop:s0 exact string

@@ -1,5 +1,3 @@
-# property.te
-
 system_internal_prop(secureadb_prop)
 system_internal_prop(semc_sim_prop)
 system_internal_prop(semc_version_prop)
@@ -26,3 +24,35 @@ vendor_internal_prop(vendor_somc_hdcp_prop)
 vendor_internal_prop(vendor_target_id_prop)
 vendor_internal_prop(wifi_active_prop)
 vendor_internal_prop(wigig_prop)
+vendor_internal_prop(vendor_telephony_mnc_prop)
+
+# ro.bpf.kver_override (lilac/vendor.prop:10): written by vendor_init from
+# vendor.prop, read by bpfloader/netd/zygote/lmkd/etc. system_vendor_config_prop
+# is the AOSP-idiomatic macro for exactly this shape - it expands to
+# system_public_prop (readable by ALL domains) + set_prop(vendor_init, ...)
+# + the matching neverallow. See system/sepolicy/public/te_macros:986.
+system_vendor_config_prop(vendor_bpf_kver_prop)
+
+# persist.sys.nfc_variant — the user's NFC controller choice (auto|nxp|felica),
+# written by XperiaParts and read by the boot-time selector.
+system_internal_prop(vendor_nfc_variant_prop)
+
+# persist.sys.perf_profile — the user's CPU/GPU tuning profile
+# (battery|balanced|performance), written by XperiaParts. init.(lilac|poplar)-perf.rc
+# maps it to the powerhint file the power HAL loads; nothing else reads it.
+#
+# RESTRICTED, not internal: the rc that acts on it lives in /vendor, and init
+# only accepts a property trigger from a vendor script if vendor_init can read
+# the property (action_parser.cpp IsActionableProperty). system_restricted_prop
+# is the macro for "system writes, vendor may read".
+system_restricted_prop(vendor_perf_profile_prop)
+# vendor.nfc.variant — which controller was actually selected this boot.
+#
+# PUBLIC, not internal, and that distinction is load-bearing: XperiaParts reads
+# this to pick the matching NCI config file, and it runs as system_app, which is
+# a coredomain. vendor_internal_prop emits
+#   neverallow { coredomain -init -dumpstate } <prop>:file no_rw_file_perms;
+# so an internal property could not be read there at all — the build would fail
+# rather than merely deny at runtime. A vendor-owned property that system
+# components are meant to read is exactly what vendor_public_prop is for.
+vendor_public_prop(vendor_nfc_hw_prop)

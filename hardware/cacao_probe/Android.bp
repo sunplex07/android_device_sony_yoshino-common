@@ -1,0 +1,12 @@
+// Debug-only probe, intentionally NOT in PRODUCT_PACKAGES. Build with `m cacao_probe` and push.
+cc_binary {
+    name: "cacao_probe",
+    srcs: ["cacao_probe.cpp"],
+    compile_multilib: "both",
+    multilib: {
+        lib32: { suffix: "32" },
+        lib64: { suffix: "64" },
+    },
+    shared_libs: ["libdl", "liblog", "libbinder", "libutils"],
+    cflags: ["-Wall", "-Werror"],
+}

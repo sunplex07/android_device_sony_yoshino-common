@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Runtime permission grants for Sony's add-on camera modes (Creative effect, Sound Photo).
+
+  These are SEPARATE APKs from SemcCameraUI, launched by it when the user picks the mode, and they
+  carry their own runtime permissions. Without these grants the add-on opens, previews, and then
+  fails at capture with:
+
+      E AppOps: Operation not started: uid=... pkg=...soundphoto op=RECORD_AUDIO
+
+  Sound Photo records an audio clip alongside the still, so a refused RECORD_AUDIO op means it can
+  never finish a capture. On a fresh flash the user would be prompted for CAMERA (the add-on shows a
+  permission dialog on first launch) but the failure mode for audio is silent - the shutter simply
+  does nothing. See CACAO_RESTORATION.md section 83.2.
+
+  fixed="false" so the user can still revoke them in Settings.
+-->
+<exceptions>
+    <exception package="com.sonymobile.android.addoncamera.soundphoto">
+        <permission name="android.permission.CAMERA" fixed="false"/>
+        <permission name="android.permission.RECORD_AUDIO" fixed="false"/>
+        <permission name="android.permission.READ_EXTERNAL_STORAGE" fixed="false"/>
+        <permission name="android.permission.WRITE_EXTERNAL_STORAGE" fixed="false"/>
+    </exception>
+    <exception package="com.sonyericsson.android.addoncamera.artfilter">
+        <permission name="android.permission.CAMERA" fixed="false"/>
+        <permission name="android.permission.RECORD_AUDIO" fixed="false"/>
+        <permission name="android.permission.READ_EXTERNAL_STORAGE" fixed="false"/>
+        <permission name="android.permission.WRITE_EXTERNAL_STORAGE" fixed="false"/>
+    </exception>
+</exceptions>

@@ -1,0 +1,16 @@
+cc_library_shared {
+    name: "libgrallocdedup",
+    proprietary: true,
+    compile_multilib: "32",
+    srcs: [
+        "gralloc_dedup.cpp",
+    ],
+    cflags: [
+        "-Wall",
+        "-Wno-unused-parameter",
+    ],
+    shared_libs: [
+        "liblog",
+        "libdl",
+    ],
+}

@@ -1,0 +1,28 @@
+// Opt-in shim for the vendor camera provider. See superslowfix.cpp for the mechanism.
+//
+// 32-bit only. NOTE: there is no `cald` process on this device - the excal plugin is hosted by
+// vendor.somc.hardware.camera.provider@1.0-service, which is ELF32, as is
+// /vendor/lib/camera/libexcal_process_ctrl_plugin.so.
+//
+// NOT added to PRODUCT_PACKAGES yet, and NOT preloaded by any .rc - deploying it means editing
+// the PROVIDER's init script, which puts this code in the path of EVERY camera on the device
+// including the stock Camera2 one. Note init only parses .rc files at BOOT, so such an edit takes
+// effect on the next boot and an unloadable .so there stops the provider - and every camera with
+// it. See CACAO_RESTORATION.md 95.4 for the pre-reboot load test.
+//
+// The notifySuperSlowEvt injection this library performs does NOT fix slow motion (section 96):
+// the real blocker is that the burst buffers are allocated 0x0. Kept as an observation instrument.
+cc_library_shared {
+    name: "libsuperslowfix",
+    compile_multilib: "32",
+    srcs: ["superslowfix.cpp"],
+    shared_libs: [
+        "libdl",
+        "liblog",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+    vendor: true,
+}

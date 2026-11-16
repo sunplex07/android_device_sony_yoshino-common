@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# modem_switcher remains defined/disabled in init.yoshino.srv.rc, with no
+# unguarded start trigger. Guard children exec its original binary/domain.
+service modem_switcher_guard /system/bin/modem-switcher-guard
+    user root
+    group root system oem_2993 cache
+    disabled
+    oneshot
+    timeout_period 45
+    stdio_to_kmsg

@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+cc_binary {
+    name: "modem-switcher-guard",
+    srcs: ["modem_guard.cpp"],
+    compile_multilib: "64",
+    shared_libs: ["libdl", "libcrypto"],
+    cflags: ["-Wall", "-Wextra", "-Werror", "-Wno-deprecated-declarations"],
+    init_rc: ["modem-guard.rc"],
+}

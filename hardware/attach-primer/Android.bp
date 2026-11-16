@@ -1,0 +1,22 @@
+// lilac LTE attach primer: re-sends 3GPP profile 1's own stored values as one
+// byte-identical QMI WDS Modify before radio-on, collapsing cold-boot attach
+// from ~26s to ~2s. Evidence: lilac-modem/evidence/attach-primer-module-v1.
+cc_binary {
+    name: "wds-attach-primer",
+    vendor: true,
+    srcs: ["wds_attach_primer.c"],
+    local_include_dirs: ["include"],
+    cflags: ["-Wall", "-Wextra"],
+    shared_libs: ["libdl"],
+    init_rc: ["wds-attach-primer.rc"],
+}
+
+// Manual repair tool for a wiped 3GPP profile-1 attach APN (see CellularDebugActivity).
+cc_binary {
+    name: "wds-profile-restore",
+    vendor: true,
+    srcs: ["wds_profile_restore.c"],
+    local_include_dirs: ["include"],
+    cflags: ["-Wall", "-Wextra"],
+    shared_libs: ["libdl"],
+}

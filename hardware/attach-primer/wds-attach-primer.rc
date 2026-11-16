@@ -1,0 +1,14 @@
+# Fires whenever the radio stack comes up (first boot AND after qcrild/SSR
+# restarts - the modem needs the same kick in both cases).
+on property:init.svc.vendor.qcrild=running
+    mkdir /data/vendor/attach_primer 0700 root root
+    start vendor.attach_primer
+
+service vendor.attach_primer /vendor/bin/wds-attach-primer --wait /data/vendor/attach_primer
+    class main
+    user root
+    oneshot
+    disabled
+    stdio_to_kmsg
+
+# Manual repair helper (root/adb): /vendor/bin/wds-profile-restore <dir> <apn>

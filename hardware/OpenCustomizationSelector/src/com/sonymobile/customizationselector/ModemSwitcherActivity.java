@@ -34,18 +34,41 @@ public class ModemSwitcherActivity extends Activity {
 
         if (mModemSwitcher.setModemConfiguration(ModemSwitcher.MODEM_FS_PATH + str)) {
             ((PowerManager) getSystemService(Context.POWER_SERVICE)).reboot(getApplicationContext().getString(R.string.reboot_reason_modem_debug));
+        } else {
+            new Builder(this, R.style.AppDialog)
+                    .setTitle(R.string.debug_verify_title)
+                    .setMessage(getString(R.string.modem_apply_failed, str))
+                    .setPositiveButton(android.R.string.ok, (d, i) -> d.dismiss())
+                    .create().show();
         }
     }
 
-    private void saveInitialModem(String str) {
+    /** Remembers the first SHIPPED configuration seen, so "restore" can always be applied. */
+    private void saveInitialModem(String str, java.util.Set<String> shipped) {
         mInitialModem = mPreference.getString(INITIAL_MODEM_PREF, "");
         CSLog.d(TAG, "Save initial modem" + mInitialModem);
 
-        if (mInitialModem.equals("") && str != null && !str.equals("")) {
+        if (mInitialModem.equals("") && str != null && shipped.contains(str)) {
             CSLog.d(TAG, "Save initial modem in preference");
             mInitialModem = str;
             mPreference.edit().putString(INITIAL_MODEM_PREF, str).apply();
         }
+    }
+
+    private String describeCurrent(ModemState state) {
+        if (state.source == ModemState.Source.NONE) {
+            return getString(R.string.modem_current_unknown);
+        }
+        if (ModemState.TEMPORARY_MODEM.equals(state.name)) {
+            return getString(R.string.modem_current_pending);
+        }
+        if (!state.shipped) {
+            return getString(R.string.modem_current_not_shipped, state.name);
+        }
+        if (state.source == ModemState.Source.MISC_TA) {
+            return getString(R.string.modem_current_from_ta, state.name);
+        }
+        return state.name;
     }
 
     private void verifyPick(final String str) {
@@ -64,40 +87,43 @@ public class ModemSwitcherActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         mModemSwitcher = new ModemSwitcher();
         try {
-            int i2;
-            String currentModem = ModemSwitcher.getCurrentModemConfig().replace(ModemSwitcher.MODEM_FS_PATH, "");
-            CSLog.d(TAG, "current modem" + currentModem);
-
             String[] availableModemConfigurations = mModemSwitcher.getAvailableModemConfigurations();
-            if (currentModem.equals(ModemSwitcher.SINGLE_MODEM_FS) || currentModem.equals("")) {
+            // "Single modem" means this build ships no switchable images at all. It used to
+            // also be inferred from an unreadable/absent status file, which hid the list on
+            // exactly the devices that need it (2404 names an image this build lacks).
+            if (availableModemConfigurations.length == 0 || (availableModemConfigurations.length == 1
+                    && ModemSwitcher.SINGLE_MODEM_FS.equals(availableModemConfigurations[0]))) {
                 CSLog.d(TAG, "Single modem device");
-                i2 = 1;
-            } else {
-                saveInitialModem(currentModem);
-                i2 = 0;
-            }
-            if (i2 != 0) {
                 setContentView(R.layout.modem_handling_single);
                 return;
             }
-            setContentView(R.layout.modem_handling);
-
-            ((TextView) findViewById(R.id.initial_modem)).setText(mInitialModem);
-            ((TextView) findViewById(R.id.current_modem)).setText(currentModem);
-            AppCompatEditText editText = findViewById(R.id.search_modem);
-
-            Button button = findViewById(R.id.restore_button);
-            button.setClickable(true);
 
             ArrayList<String> modemList = new ArrayList<>();
             for (String m : availableModemConfigurations) {
                 modemList.add(m.replace(ModemSwitcher.MODEM_FS_PATH, ""));
             }
+            java.util.Set<String> shipped = new java.util.HashSet<>(modemList);
+
+            ModemState state = mModemSwitcher.readModemState();
+            CSLog.d(TAG, "current modem " + state.name + " (" + state.source + ", shipped=" + state.shipped + ")");
+            saveInitialModem(state.shipped ? state.name : null, shipped);
+
+            setContentView(R.layout.modem_handling);
+
+            boolean canRestore = mInitialModem != null && shipped.contains(mInitialModem);
+            ((TextView) findViewById(R.id.initial_modem)).setText(
+                    canRestore ? mInitialModem : getString(R.string.modem_initial_unknown));
+            ((TextView) findViewById(R.id.current_modem)).setText(describeCurrent(state));
+            AppCompatEditText editText = findViewById(R.id.search_modem);
+
+            Button button = findViewById(R.id.restore_button);
+            button.setEnabled(canRestore);
+            button.setClickable(canRestore);
 
             mModemListView = findViewById(R.id.modem_list);
             setupListAdapter(modemList);
             button.setOnClickListener(view -> {
-                if (mInitialModem != null) {
+                if (canRestore) {
                     verifyPick(mInitialModem);
                 }
             });

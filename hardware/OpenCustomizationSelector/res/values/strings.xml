@@ -19,4 +19,10 @@
     <string name="modem_switcher_status">Modem Switcher Status</string>
     <string name="file_not_found">File not found</string>
     <string name="search_modem">Search modem</string>
+    <string name="modem_current_unknown">Unknown — the modem configuration could not be read. Pick one below to set it.</string>
+    <string name="modem_current_pending">A modem change is pending and will be applied at the next restart.</string>
+    <string name="modem_current_not_shipped">%1$s (not included in this build — automatic modem switching is paused until you pick a configuration below)</string>
+    <string name="modem_current_from_ta">%1$s (not yet confirmed by the modem switcher)</string>
+    <string name="modem_initial_unknown">Not recorded</string>
+    <string name="modem_apply_failed">%1$s could not be applied. It may already be active, or a change is already pending a restart.</string>
 </resources>

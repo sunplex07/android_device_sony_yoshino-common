@@ -197,6 +197,44 @@ public class ModemSwitcher {
         throw new IOException("Current modem configuration could not be read due to error ");
     }
 
+    /** First line of the status file, or null when it is absent, oversized or unreadable. */
+    private static String readStatusLine() {
+        File statusFile = new File(MODEM_STATUS_FILE);
+        if (!statusFile.isFile() || statusFile.length() > MAXIMUM_STATUS_FILE_LENGTH) {
+            return null;
+        }
+        try (BufferedReader in = new BufferedReader(
+                new InputStreamReader(new FileInputStream(statusFile), StandardCharsets.UTF_8))) {
+            return in.readLine();
+        } catch (IOException e) {
+            CSLog.w(TAG, "readStatusLine: " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Current modem configuration for display/selection. Unlike getCurrentModemConfig()
+     * this never throws: it falls back to MiscTA 2404 when the switcher has not written a
+     * status file (see ModemState). Automatic switching keeps using getCurrentModemConfig().
+     */
+    public ModemState readModemState() {
+        String ta = null;
+        try {
+            ta = ModemState.taText(MiscTA.read(TA_FOTA_INTERNAL));
+        } catch (RuntimeException | UnsatisfiedLinkError e) {
+            CSLog.w(TAG, "readModemState: MiscTA 2404 unreadable: " + e);
+        }
+        java.util.Set<String> shipped = new java.util.HashSet<>();
+        for (String m : getAvailableModemConfigurations()) {
+            shipped.add(m.replace(MODEM_FS_PATH, ""));
+        }
+        ModemState state = ModemState.resolve(readStatusLine(), ta,
+                ModemSwitcher::lookupSymlinkTarget, shipped::contains);
+        CSLog.d(TAG, "readModemState: source=" + state.source + " name=" + state.name
+                + " shipped=" + state.shipped);
+        return state;
+    }
+
     public boolean isModemStatusSuccess() {
         ModemStatus status = readModemAndStatus();
         return status != null && status.modemStatusSuccessful;
